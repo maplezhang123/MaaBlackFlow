@@ -1,0 +1,23 @@
+{
+  "nodes": [
+    {"id": "start", "x": 0, "y": 0, "type": "start"},
+    {"id": "blocked", "x": 1, "y": 0, "type": "encounter", "reward": 3},
+    {"id": "exit", "x": 2, "y": 0, "type": "exit", "is_exit": true}
+  ],
+  "edges": [],
+  "movement_rules": [
+    {
+      "id": "straight_two",
+      "vectors": [[2, 0], [-2, 0], [0, 2], [0, -2]],
+      "action_cost": 1,
+      "remaining_uses": 1,
+      "allow_skip_uncompleted": true
+    }
+  ],
+  "game_state": {
+    "current_node": "start",
+    "action_points": 1,
+    "completed_nodes": [],
+    "movement_uses": {"straight_two": 1}
+  }
+}

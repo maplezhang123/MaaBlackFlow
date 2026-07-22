@@ -1,0 +1,19 @@
+{
+  "nodes": [
+    {"id": "start", "x": 0, "y": 0, "type": "start"},
+    {"id": "supply", "x": 0, "y": 1, "type": "supply", "reward": 6},
+    {"id": "exit", "x": 1, "y": 0, "type": "exit", "is_exit": true}
+  ],
+  "edges": [
+    {"from_node": "start", "to_node": "exit", "walking_cost": 1},
+    {"from_node": "start", "to_node": "supply", "walking_cost": 1},
+    {"from_node": "supply", "to_node": "exit", "walking_cost": 1}
+  ],
+  "movement_rules": [],
+  "game_state": {
+    "current_node": "start",
+    "action_points": 2,
+    "completed_nodes": [],
+    "movement_uses": {}
+  }
+}

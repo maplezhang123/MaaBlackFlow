@@ -1,0 +1,16 @@
+{
+  "nodes": [
+    {"id": "start", "x": 0, "y": 0, "type": "start"},
+    {"id": "exit", "x": 1, "y": 0, "type": "exit", "is_exit": true}
+  ],
+  "edges": [
+    {"from_node": "start", "to_node": "exit", "walking_cost": 2}
+  ],
+  "movement_rules": [],
+  "game_state": {
+    "current_node": "start",
+    "action_points": 1,
+    "completed_nodes": [],
+    "movement_uses": {}
+  }
+}

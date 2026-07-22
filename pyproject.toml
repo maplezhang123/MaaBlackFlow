@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maablackflow"
+version = "0.1.0"
+description = "Exact route planner for Arknights Integrated Strategies"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "MaaBlackFlow contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+maablackflow = "maablackflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maablackflow"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
