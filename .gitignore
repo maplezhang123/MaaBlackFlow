@@ -10,7 +10,9 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+Screenshots/
 data/raw_private/
+data/outputs_private/
 .idea/
 .vscode/
 Thumbs.db
