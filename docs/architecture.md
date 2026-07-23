@@ -85,3 +85,10 @@ annotated PNG 只绘制融合后的唯一最终节点，并用不同颜色区分
 `integrations.maafw.agent` 是唯一允许导入 `maa` 的模块，而且仅在实际注册/启动时惰性导入。它只实现 Custom Recognition，不读取 `Context`、controller 或设备；失败返回空 box 并记录结构化错误。Pipeline v2 只有一个 Custom recognition 节点、`DoNothing` action 与空 `next`。因此 Maa runtime 缺失不会影响 `solver`、`vision` 或普通 CLI。
 
 未来 `MaaTemplateEvidenceProvider` 只负责把外部 TemplateMatch 命中的 box/score 转换为 `CandidateEvidence`。它不能直接生成最终节点；命中仍必须经过全局网格吸附、同格融合和现有可靠性判定。v0.3a 不含真实模板，不执行模板匹配。
+## 私有模板候选准备
+
+`vision.templates` 是离线数据准备层，不是识别 provider。它在读取来源前按调用方提供的文件名集合排除固定 holdout，只接受无损 1280×720 PNG，并仅裁取现有检测器输出的可靠 `event_node`、`empty_waypoint` 与 `current_position`。放大比例在本轮明确跳过；正常和缩小比例根据网格间距/图高比例分组，裁片大小随格距缩放。
+
+每个候选保存来源哈希标识、原图 bbox、视觉类别、置信度和人物/文字/面板/高亮/裁边风险。感知哈希只用于同类别、同缩放组内的近重复分组；原始候选不删除，推荐集从每组中按风险、置信度和稳定 ID 选择并限制人工检查规模。contact sheet 和摘要不包含绝对路径或真实来源文件名。
+
+私有 Pipeline v2 草案使用 `resource/image` 相对模板路径、地图 ROI、`TemplateMatch` recognition、`DoNothing` action 和空 `next`。候选只在被忽略的 private resource preview 中暂存，不进入公开资源。加载 resource 只验证 JSON、模板路径和资源解析，不等于执行 TemplateMatch；本阶段不创建 Tasker、AgentClient、Controller 或 Context。

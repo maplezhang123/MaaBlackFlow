@@ -99,6 +99,16 @@ v0.3b 已在本机使用 `MaaFw 5.12.2`、`MaaAgentBinary 1.0.1` 和 `MaaAgentSe
 
 安装的 `MaaFw`/`MaaAgentBinary` Python 发行包不包含 MaaPiCli 或 ProjectInterface host/loader API，所以 `interface.json` 仍只能按官方 schema 验证；真正由通用 UI/ProjectInterface host 拉起子进程的链路尚未验证。Pipeline 资源本身已经由真实 MaaFramework Resource API 加载。
 
-## 未来 TemplateMatch
+## 私有 TemplateMatch 候选准备
 
 `MaaTemplateEvidenceProvider` 目前只把外部已经产生的模板命中 `{template, box, score}` 转成 `CandidateEvidence`；其 `collect()` 默认不产生任何结果，不调用 Maa，也不伪造匹配。后续私人实验可由 MaaFramework TemplateMatch 或本地 OpenCV 模板提供真实命中，再沿现有网格吸附与同格融合流程处理。真实模板不得提交，且在道路拓扑、出口和人工校验完成前仍不能设置 `solver_ready=true`。
+
+v0.3c-A 只生成并人工检查私人候选。真实 MaaFramework `Resource.post_bundle()` 已验证私有 Pipeline 草案和相对模板路径可以加载，但没有创建 Tasker/Context，也没有执行识别，因此不得将资源加载描述为 TemplateMatch 命中验证。
+
+## v0.3c-B 私人离线 TemplateMatch
+
+人工批准模板后，v0.3c-B 使用 `MaaFw 5.12.2` 的真实 `Resource`、`Tasker` 和绑定到固定 `numpy.ndarray` 的 `CustomController`。Controller 只允许 `connect`/`screencap`，所有应用、点击、触摸、键盘、滑动与 shell 回调都拒绝；资源内 Pipeline action 全部为 `DoNothing`。
+
+真实实验通过官方 `Tasker.post_recognition(JRecognitionType.TemplateMatch, JTemplateMatch(...), image)` 执行。测试发现同一 SDK 下通过 `Tasker.post_task()` 运行私有 TemplateMatch Pipeline 在安全 smoke 中超过 20 秒仍未结束，因此没有将该等待链路用于 holdout，也没有伪称其成功。`post_recognition` 仍由真实 Maa 原生识别器执行，并使用已加载 Resource 解析私人相对模板路径。
+
+首轮阈值固定为 `0.70`。命中进入融合前必须位于地图 ROI、避开 UI mask、在 `0.30 × min(sx, sy)` 内吸附到已有全局网格，并按 `(grid_row, grid_col)` 只保留最高分结果。人物位置继续由 `white_person_component` 提供，私人模板、原始分数和评估输出均保持 Git 忽略。即使融合评估改善，仍不识别完整道路拓扑或出口，`solver_ready` 必须保持 `false`。

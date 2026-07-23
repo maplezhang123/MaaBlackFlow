@@ -4,9 +4,9 @@
 
 MaaBlackFlow 是独立、非官方的社区项目。不得暗示获得 MAA、MaaFramework 或鹰角网络的认可、授权或背书。
 
-当前完成 v0.1 路径规划核心与 v0.2 离线截图识别可信基线，并已完成 v0.3a MaaFramework Custom Recognition 可选接入骨架，并已完成 v0.3b 真实运行时兼容性验证。除非用户明确进入后续阶段，否则：
+当前完成 v0.1 路径规划核心与 v0.2 离线截图识别可信基线，并已完成 v0.3a MaaFramework Custom Recognition 可选接入骨架、v0.3b 真实运行时兼容性验证、v0.3c-A 私有模板候选准备管线与 v0.3c-B 私人离线 TemplateMatch 对照实验。除非用户明确进入后续阶段，否则：
 
-- 不扩展 MaaFramework 运行时能力；v0.3a/v0.3b 只允许可选 Agent/adapter/Pipeline 与无设备运行时验证，不接 controller、截图或 action；
+- MaaFramework 只允许可选 Agent/adapter/Pipeline 与无设备验证；离线实验仅可使用拒绝全部输入动作的静态图片 CustomController，禁止 ADB、模拟器、系统输入和非 `DoNothing` action；
 - 不复制 MAA 的代码、图片或其他资源；
 - 不开发 GUI；
 - 不上传 GitHub 或其他远端；
@@ -17,7 +17,7 @@ MaaBlackFlow 是独立、非官方的社区项目。不得暗示获得 MAA、Maa
 ## 私人数据
 
 - 仓库根 `Screenshots/` 是只读的本地私人输入；不得移动、删除、修改或重命名其中的原图。
-- `Screenshots/`、`data/raw_private/`、`data/outputs_private/`、`data/ground_truth_private/` 必须保持 Git 忽略。
+- `Screenshots/`、`data/raw_private/`、`data/outputs_private/`、`data/ground_truth_private/`、`data/templates_private/` 必须保持 Git 忽略。
 - 不提交真实截图、真实文件名清单、标注图或其他私人派生产物。
 - 数据清单只能在私人输出目录保存绝对/真实信息；公开文档只使用虚构示例。
 - 处理截图前先核对 Git 忽略与索引状态；若私人图片已被跟踪或暂存，应停止并汇报。

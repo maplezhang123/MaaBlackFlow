@@ -14,6 +14,9 @@ Screenshots/
 data/raw_private/
 data/outputs_private/
 data/ground_truth_private/
+data/templates_private/
 .idea/
 .vscode/
 Thumbs.db
+
+/rouge_run03_模板候选_待检查/

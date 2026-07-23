@@ -112,6 +112,23 @@ python -m maablackflow.cli evaluate-detection `
 v0.3b 已使用 `MaaFw 5.12.2` 与 `MaaAgentBinary 1.0.1` 验证原生 Custom Recognition 注册、真实 `AnalyzeArg`/`AnalyzeResult` 返回契约，以及 `Resource.post_bundle()` 对 Pipeline v2 的加载。验证没有创建 Controller、连接 ADB、启动 Agent socket 或执行 action。
 
 真实运行时测试位于 `tests/test_maafw_runtime.py`：安装可选 runtime 时执行，未安装时自动跳过，因此核心求解器和离线视觉仍不依赖 MaaFramework。
+## 私有模板候选准备
+
+v0.3c-A 可以从非验收截图中保守裁取高可信 `event_node`、`empty_waypoint` 和单独的 `current_position` 候选，并按正常/缩小比例分组、标记污染风险、使用感知哈希近重复分组。固定验收文件必须逐个通过 `--exclude` 指定；排除项只记录为未读取 holdout：
+
+```powershell
+.\.venv\Scripts\python.exe -m maablackflow.cli build-template-candidates `
+  Screenshots `
+  --output data\templates_private\run03 `
+  --exclude "holdout_a.png" `
+  --exclude "holdout_b.png"
+```
+
+`data/templates_private/` 被 Git 忽略。完整候选、推荐副本、来源/候选清单、contact sheet 和 Maa Pipeline v2 草案都只保存在私人目录。推荐仅表示自动去重后的人工检查优先级，不代表模板已批准，也不会被复制到公开 `maafw_project/resource/image`。
+
+该阶段不会调用 OpenCV 或 MaaFramework 的 TemplateMatch；私有 resource preview 只用于验证路径和 Pipeline 能否加载，`action=DoNothing` 且 `solver_ready=false`。
+
+v0.3c-B 在人工批准后才使用 MaaFramework 5.12.2 的真实 `Resource` 与 `Tasker.post_recognition()` 做私人静态图片对照实验。模板命中经过地图 ROI、UI mask、动态格距吸附和按格去重后才能参与融合；静态 Controller 拒绝全部输入动作，Pipeline 仍仅使用 `DoNothing`。模板、分数、截图和评估输出不会进入 Git，融合结果仍为 `solver_ready=false`，不得输入求解器。
 ## MaaFramework 离线 adapter smoke
 
 v0.3a 的 adapter 可在完全不启动 MaaFramework 的情况下复用当前检测器：

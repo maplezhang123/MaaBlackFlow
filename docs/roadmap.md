@@ -18,9 +18,13 @@
 
 使用官方 Python/native runtime 验证 Custom Recognition 注册、真实 AnalyzeArg/AnalyzeResult 契约和 Pipeline v2 资源加载；不启动 Agent socket，不接 controller、ADB、截图或动作。
 
-## v0.3c：私人 TemplateMatch 实验（待确认）
+## v0.3c-A：私有节点模板候选集（已完成）
 
-在不提交真实模板的前提下，把 MaaFramework TemplateMatch 命中作为新的 `CandidateEvidence`，使用私人 GT 评估增益。只有通过道路拓扑、出口与人工校验后，才可另行设计视觉结果到 solver 的安全门。
+从非 holdout 的无损截图裁取正常/缩小比例候选，完成风险标注、感知去重和人工检查包；只加载私人 Pipeline 草案，不执行 TemplateMatch。
+
+## v0.3c-B：私人 TemplateMatch 评估（已完成可信实验）
+
+人工批准少量模板后，使用 MaaFramework 5.12.2 的真实 `Resource` 与 `Tasker.post_recognition()` 在静态图片上执行 TemplateMatch，并在固定 holdout 上对比 OpenCV、模板单独及融合结果。模板命中必须经过 ROI/UI、动态格距吸附和按格去重；所有输出仍为私人数据，`solver_ready=false`。只有通过道路拓扑、出口与人工校验后，才可另行设计视觉结果到 solver 的安全门。
 
 ## v0.4：独立可视化界面
 

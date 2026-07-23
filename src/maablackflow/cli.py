@@ -12,6 +12,10 @@ from maablackflow.integrations.maafw.serialization import stable_json
 from maablackflow.io import MapLoadError, load_problem
 from maablackflow.solver import RoutePlanner
 from maablackflow.vision.image_io import load_png
+from maablackflow.vision.templates import (
+    TemplateCandidateError,
+    build_template_candidates,
+)
 from maablackflow.vision import (
     DatasetInspectionError,
     EvaluationError,
@@ -72,6 +76,18 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         required=True,
         help="private directory for the framework-neutral detail JSON",
+    )
+    templates = subcommands.add_parser(
+        "build-template-candidates",
+        help="prepare private, holdout-safe template candidates",
+    )
+    templates.add_argument("directory", type=Path, help="private screenshot directory")
+    templates.add_argument("--output", type=Path, required=True)
+    templates.add_argument(
+        "--exclude",
+        action="append",
+        default=[],
+        help="holdout filename to exclude without reading; repeat for each holdout",
     )
 
     return parser
@@ -189,6 +205,27 @@ def _maa_adapter_smoke(image_path: Path, output: Path) -> int:
     print(f"detail JSON: {detail_path.resolve()}")
     return 0
 
+def _build_template_candidates(
+    directory: Path, output: Path, excluded: list[str]
+) -> int:
+    try:
+        result = build_template_candidates(
+            directory,
+            output,
+            excluded_filenames=excluded,
+        )
+    except TemplateCandidateError as exc:
+        print(f"模板候选构建失败: {exc}", file=sys.stderr)
+        return 2
+    print(f"候选模板数量: {result.candidate_count}")
+    print(f"推荐模板数量: {result.recommended_count}")
+    print(f"来源清单: {result.source_manifest_path.resolve()}")
+    print(f"候选清单: {result.candidate_manifest_path.resolve()}")
+    print(f"Contact sheet: {result.contact_sheet_path.resolve()}")
+    print(f"Pipeline 草案: {result.pipeline_draft_path.resolve()}")
+    print(f"检查包: {result.review_bundle_path.resolve()}")
+    return 0
+
 def _format_metric(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.3f}"
 
@@ -223,6 +260,8 @@ def main(argv: list[str] | None = None) -> int:
         return _evaluate_detection(args.ground_truth, args.predictions)
     if args.command == "maa-adapter-smoke":
         return _maa_adapter_smoke(args.image, args.output)
+    if args.command == "build-template-candidates":
+        return _build_template_candidates(args.directory, args.output, args.exclude)
     raise AssertionError(f"unhandled command: {args.command}")
 
 
