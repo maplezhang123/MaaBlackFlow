@@ -18,6 +18,7 @@ from maablackflow.integrations.maafw.adapter import (
     image_from_maa,
 )
 from maablackflow.integrations.maafw.agent import (
+    MaaFrameworkRuntimeError,
     OPTIONAL_RUNTIME_ERROR,
     analyze_argv,
     main as agent_main,
@@ -158,12 +159,10 @@ def test_fake_sdk_registration_returns_official_analyze_result(monkeypatch) -> N
 
     class AgentServer:
         @staticmethod
-        def custom_recognition(name):
-            def decorator(cls):
-                captured["name"] = name
-                captured["class"] = cls
-                return cls
-            return decorator
+        def register_custom_recognition(name, recognition):
+            captured["name"] = name
+            captured["instance"] = recognition
+            return True
 
     maa = ModuleType("maa")
     agent_package = ModuleType("maa.agent")
@@ -179,7 +178,7 @@ def test_fake_sdk_registration_returns_official_analyze_result(monkeypatch) -> N
     server, recognizer = register_custom_recognition()
     assert server is AgentServer
     assert captured["name"] == "MaaBlackFlow.MapRecognize"
-    assert captured["class"] is recognizer
+    assert isinstance(captured["instance"], recognizer)
     monkeypatch.setattr(
         "maablackflow.integrations.maafw.agent.MapRecognitionAdapter",
         lambda: MapRecognitionAdapter(StubDetector()),
@@ -192,6 +191,12 @@ def test_fake_sdk_registration_returns_official_analyze_result(monkeypatch) -> N
     assert isinstance(sdk_result, AnalyzeResult)
     assert sdk_result.box == (280, 180, 41, 41)
     assert sdk_result.detail["solver_ready"] is False
+
+    AgentServer.register_custom_recognition = staticmethod(
+        lambda name, recognition: False
+    )
+    with pytest.raises(MaaFrameworkRuntimeError, match="failed to register"):
+        register_custom_recognition()
 
 
 def test_fake_template_match_hit_becomes_candidate_evidence() -> None:

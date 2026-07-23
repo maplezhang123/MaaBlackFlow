@@ -99,9 +99,17 @@ def register_custom_recognition() -> tuple[Any, Any]:
                 detail=payload.detail,
             )
 
-    AgentServer.custom_recognition(MAA_CUSTOM_RECOGNITION_NAME)(
-        MaaBlackFlowMapRecognition
-    )
+    try:
+        registered = AgentServer.register_custom_recognition(
+            MAA_CUSTOM_RECOGNITION_NAME,
+            MaaBlackFlowMapRecognition(),
+        )
+    except OSError as exc:
+        raise MaaFrameworkRuntimeError(OPTIONAL_RUNTIME_ERROR) from exc
+    if not registered:
+        raise MaaFrameworkRuntimeError(
+            f"failed to register custom recognition: {MAA_CUSTOM_RECOGNITION_NAME}"
+        )
     return AgentServer, MaaBlackFlowMapRecognition
 
 
