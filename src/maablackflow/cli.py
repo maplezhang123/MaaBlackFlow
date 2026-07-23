@@ -7,8 +7,11 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from maablackflow.integrations.maafw import MaaAdapterError, MapRecognitionAdapter
+from maablackflow.integrations.maafw.serialization import stable_json
 from maablackflow.io import MapLoadError, load_problem
 from maablackflow.solver import RoutePlanner
+from maablackflow.vision.image_io import load_png
 from maablackflow.vision import (
     DatasetInspectionError,
     EvaluationError,
@@ -58,6 +61,18 @@ def _parser() -> argparse.ArgumentParser:
     )
     evaluate.add_argument("--ground-truth", type=Path, required=True)
     evaluate.add_argument("--predictions", type=Path, required=True)
+
+    maa_smoke = subcommands.add_parser(
+        "maa-adapter-smoke",
+        help="run the Maa adapter offline without MaaFramework",
+    )
+    maa_smoke.add_argument("image", type=Path, help="input PNG image")
+    maa_smoke.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="private directory for the framework-neutral detail JSON",
+    )
 
     return parser
 
@@ -132,6 +147,48 @@ def _detect_nodes(image_path: Path, output: Path) -> int:
     return 0
 
 
+def _maa_adapter_smoke(image_path: Path, output: Path) -> int:
+    try:
+        image, source = load_png(image_path)
+        payload = MapRecognitionAdapter().analyze(
+            image,
+            {
+                "output_detail": True,
+                "require_solver_ready": False,
+                "recognition_mode": "grid_baseline",
+            },
+        )
+        if not payload.success:
+            raise MaaAdapterError("adapter did not produce a successful recognition")
+        current = payload.detail.get("current_position")
+        if not isinstance(current, dict):
+            raise MaaAdapterError("current_position was not detected")
+        if "marker_center" not in current or "grid_center" not in current:
+            raise MaaAdapterError(
+                "current_position must contain marker_center and grid_center"
+            )
+        nodes = payload.detail.get("nodes")
+        if not isinstance(nodes, list):
+            raise MaaAdapterError("adapter detail nodes are invalid")
+        cells = [(node.get("grid_row"), node.get("grid_col")) for node in nodes]
+        if len(cells) != len(set(cells)):
+            raise MaaAdapterError("adapter detail contains duplicate grid cells")
+        document = stable_json(payload.detail)
+        if str(source.resolve()) in document:
+            raise MaaAdapterError("adapter detail contains a private absolute path")
+    except (VisionError, MaaAdapterError, OSError) as exc:
+        print(f"Maa adapter smoke 失败: {exc}", file=sys.stderr)
+        return 2
+
+    output.mkdir(parents=True, exist_ok=True)
+    detail_path = output / f"{source.stem}.maa-detail.json"
+    detail_path.write_text(document + "\n", encoding="utf-8")
+    print(f"输入分辨率: {payload.detail['image_width']}x{payload.detail['image_height']}")
+    print(f"识别节点数量: {len(nodes)}")
+    print(f"solver_ready: {str(payload.detail['solver_ready']).lower()}")
+    print(f"detail JSON: {detail_path.resolve()}")
+    return 0
+
 def _format_metric(value: float | None) -> str:
     return "n/a" if value is None else f"{value:.3f}"
 
@@ -164,6 +221,8 @@ def main(argv: list[str] | None = None) -> int:
         return _detect_nodes(args.image, args.output)
     if args.command == "evaluate-detection":
         return _evaluate_detection(args.ground_truth, args.predictions)
+    if args.command == "maa-adapter-smoke":
+        return _maa_adapter_smoke(args.image, args.output)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

@@ -67,7 +67,7 @@ annotated PNG 只绘制融合后的唯一最终节点，并用不同颜色区分
 
 ### 证据提供器边界
 
-`EvidenceProvider` 只负责产生局部 `CandidateEvidence`，并声明是否依赖已拟合网格。当前 OpenCV 圆形提供器在网格拟合前运行，人物 marker 提供器在网格拟合后运行。未来可在相同边界加入私人 OpenCV 模板、MaaFramework TemplateMatch 或 OCR 适配器，而不修改全局网格与按格融合。本阶段没有接入 MaaFramework 或真实模板。
+`EvidenceProvider` 只负责产生局部 `CandidateEvidence`，并声明是否依赖已拟合网格。当前 OpenCV 圆形提供器在网格拟合前运行，人物 marker 提供器在网格拟合后运行。未来可在相同边界加入私人 OpenCV 模板、MaaFramework TemplateMatch 或 OCR 适配器，而不修改全局网格与按格融合。v0.3a 只新增 MaaFramework 可选适配骨架；当前 provider 仍未调用 MaaFramework，也没有真实模板。
 
 ### 私人评估
 
@@ -78,3 +78,10 @@ annotated PNG 只绘制融合后的唯一最终节点，并用不同颜色区分
 全局周期拟合消除了同一行列附近堆积的重复轴，并显著压缩同格重复候选，但视觉类别仍不等于具体游戏节点类型。顶部 UI 附近的圆形装饰、道路纹理和极暗的孤立节点仍可能造成误检或漏检；两轴周期只是近似，不能替代人工真值或道路拓扑。
 
 检测结果尚无完整道路边、出口和拓扑校验，严禁直接输入路径求解器。下一步应先建立少量本地人工真值并逐节点量化精确率/召回率，再决定继续优化传统视觉还是加入合法的 MaaFramework 模板匹配证据。
+## MaaFramework 可选集成边界
+
+`integrations.maafw.adapter` 是纯 Python/OpenCV 边界：接收 BGR `numpy.ndarray`，调用既有 `NodeDetector`，并把结果交给独立的稳定序列化层。detail 不接收文件路径，节点按检测器的稳定行列顺序输出，`solver_ready` 恒为 `false`。主要识别框优先使用当前位置的地图格点框，无当前位置时才使用拟合网格覆盖的 `map_roi`。
+
+`integrations.maafw.agent` 是唯一允许导入 `maa` 的模块，而且仅在实际注册/启动时惰性导入。它只实现 Custom Recognition，不读取 `Context`、controller 或设备；失败返回空 box 并记录结构化错误。Pipeline v2 只有一个 Custom recognition 节点、`DoNothing` action 与空 `next`。因此 Maa runtime 缺失不会影响 `solver`、`vision` 或普通 CLI。
+
+未来 `MaaTemplateEvidenceProvider` 只负责把外部 TemplateMatch 命中的 box/score 转换为 `CandidateEvidence`。它不能直接生成最终节点；命中仍必须经过全局网格吸附、同格融合和现有可靠性判定。v0.3a 不含真实模板，不执行模板匹配。

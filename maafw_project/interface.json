@@ -1,0 +1,31 @@
+{
+  "interface_version": 2,
+  "name": "MaaBlackFlow",
+  "label": "MaaBlackFlow experimental recognition skeleton",
+  "version": "0.3.0-alpha",
+  "github": "https://github.com/maplezhang123/MaaBlackFlow",
+  "license": "AGPL-3.0",
+  "description": "Independent community offline map-recognition experiment; no controller or action is configured.",
+  "agent": {
+    "child_exec": "python",
+    "child_args": [
+      "-m",
+      "maablackflow.integrations.maafw.agent"
+    ]
+  },
+  "controller": [],
+  "resource": [
+    {
+      "name": "OfflineGridBaseline",
+      "path": ["resource"]
+    }
+  ],
+  "task": [
+    {
+      "name": "RecognizeMapOnce",
+      "entry": "MaaBlackFlowMapRecognize",
+      "resource": ["OfflineGridBaseline"],
+      "description": "Runs Custom Recognition once with DoNothing; solver_ready remains false."
+    }
+  ]
+}

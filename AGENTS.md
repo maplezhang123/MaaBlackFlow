@@ -4,15 +4,15 @@
 
 MaaBlackFlow 是独立、非官方的社区项目。不得暗示获得 MAA、MaaFramework 或鹰角网络的认可、授权或背书。
 
-当前完成 v0.1 路径规划核心，并正在开发 v0.2 离线截图识别。除非用户明确进入后续阶段，否则：
+当前完成 v0.1 路径规划核心与 v0.2 离线截图识别可信基线，并正在开发 v0.3a MaaFramework Custom Recognition 可选接入骨架。除非用户明确进入后续阶段，否则：
 
-- 不接入 MaaFramework；
+- 不扩展 MaaFramework 运行时能力；v0.3a 只允许可选 Agent/adapter/Pipeline 骨架，不接 controller、截图或 action；
 - 不复制 MAA 的代码、图片或其他资源；
 - 不开发 GUI；
 - 不上传 GitHub 或其他远端；
 - 不执行自动点击、模拟器控制或设备控制；
 - 不修改既有求解器行为来迎合视觉输出。
-- 未经道路拓扑、出口和人工校验的视觉候选不得输入求解器。
+- 未经道路拓扑、出口和人工校验的视觉候选不得输入求解器，Maa detail 的 `solver_ready` 必须保持 `false`。
 
 ## 私人数据
 

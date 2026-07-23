@@ -1,0 +1,20 @@
+{
+  "MaaBlackFlowMapRecognize": {
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "MaaBlackFlow.MapRecognize",
+        "custom_recognition_param": {
+          "output_detail": true,
+          "require_solver_ready": false,
+          "recognition_mode": "grid_baseline"
+        }
+      }
+    },
+    "action": {
+      "type": "DoNothing",
+      "param": {}
+    },
+    "next": []
+  }
+}

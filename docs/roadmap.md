@@ -10,9 +10,13 @@
 
 本阶段后续仍需提高暗节点和缩放状态的召回率、降低文字/高亮误检，并设计节点类型、道路连接、当前位置和出口识别。只处理用户提供的本地截图，不控制设备。
 
-## v0.3：MaaFramework 接入
+## v0.3a：MaaFramework Custom Recognition 骨架（当前阶段）
 
-通过明确适配层调用 MaaFramework 的截图、OCR、模板匹配和设备能力；遵守上游许可及接口约束，不复制 MAA 代码或图片资源。是否采用模板匹配应由 v0.2 的误检/漏检数据决定。
+以可选依赖方式提供 Pipeline v2、Python AgentServer Custom Recognition、框架无关 adapter 和稳定 detail schema。当前 action 固定为 `DoNothing`，不接 controller、ADB、截图或点击，`solver_ready=false`。
+
+## v0.3b：私人 TemplateMatch 实验（待确认）
+
+在不提交真实模板的前提下，把 MaaFramework TemplateMatch 命中作为新的 `CandidateEvidence`，使用私人 GT 评估增益。只有通过道路拓扑、出口与人工校验后，才可另行设计视觉结果到 solver 的安全门。
 
 ## v0.4：独立可视化界面
 
