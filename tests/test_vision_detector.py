@@ -11,6 +11,7 @@ from maablackflow.vision import (
     DetectedNode,
     DetectionResult,
     NodeDetector,
+    Point,
     VisionError,
     write_detection_outputs,
 )
@@ -50,7 +51,17 @@ def test_detector_supports_chinese_png_path_and_original_coordinates(tmp_path) -
     assert result.image_width == 640
     assert result.image_height == 360
     assert len(result.nodes) >= 3
+    assert sum(node.category == "current_position" for node in result.nodes) <= 1
     for node in result.nodes:
+        assert node.category in {
+            "event_node",
+            "empty_waypoint",
+            "current_position",
+            "occluded_node",
+            "uncertain",
+        }
+        assert node.sources
+        assert node.scores
         node.validate(640, 360)
         assert node.bbox.x <= node.center_x < node.bbox.x + node.bbox.width
         assert node.bbox.y <= node.center_y < node.bbox.y + node.bbox.height
@@ -76,8 +87,8 @@ def test_detection_result_json_serialization_and_bounds() -> None:
         (
             DetectedNode(
                 "node_01",
-                25,
-                30,
+                Point(25, 30),
+                Point(25, 30),
                 BoundingBox(15, 20, 21, 21),
                 0.875,
             ),
@@ -109,3 +120,7 @@ def test_writes_full_size_annotated_png_and_json(tmp_path) -> None:
     document = json.loads(json_path.read_text(encoding="utf-8"))
     assert document["node_count"] == len(result.nodes)
     assert document["image"] == {"width": 640, "height": 360}
+    assert all("category" in node for node in document["nodes"])
+    assert all("scores" in node and "sources" in node for node in document["nodes"])
+    assert all("grid_row" in node and "grid_col" in node for node in document["nodes"])
+    assert all("evidence" in node and node["evidence"] for node in document["nodes"])

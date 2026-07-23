@@ -12,11 +12,12 @@ MaaBlackFlow 是独立、非官方的社区项目。不得暗示获得 MAA、Maa
 - 不上传 GitHub 或其他远端；
 - 不执行自动点击、模拟器控制或设备控制；
 - 不修改既有求解器行为来迎合视觉输出。
+- 未经道路拓扑、出口和人工校验的视觉候选不得输入求解器。
 
 ## 私人数据
 
 - 仓库根 `Screenshots/` 是只读的本地私人输入；不得移动、删除、修改或重命名其中的原图。
-- `Screenshots/`、`data/raw_private/`、`data/outputs_private/` 必须保持 Git 忽略。
+- `Screenshots/`、`data/raw_private/`、`data/outputs_private/`、`data/ground_truth_private/` 必须保持 Git 忽略。
 - 不提交真实截图、真实文件名清单、标注图或其他私人派生产物。
 - 数据清单只能在私人输出目录保存绝对/真实信息；公开文档只使用虚构示例。
 - 处理截图前先核对 Git 忽略与索引状态；若私人图片已被跟踪或暂存，应停止并汇报。

@@ -11,10 +11,13 @@ from maablackflow.io import MapLoadError, load_problem
 from maablackflow.solver import RoutePlanner
 from maablackflow.vision import (
     DatasetInspectionError,
+    EvaluationError,
     NodeDetector,
     VisionError,
+    evaluate_directories,
     inspect_dataset,
     write_detection_outputs,
+    write_grid_debug_output,
 )
 
 
@@ -49,6 +52,13 @@ def _parser() -> argparse.ArgumentParser:
         required=True,
         help="private directory for JSON and annotated PNG",
     )
+    evaluate = subcommands.add_parser(
+        "evaluate-detection",
+        help="evaluate private node predictions against private ground truth",
+    )
+    evaluate.add_argument("--ground-truth", type=Path, required=True)
+    evaluate.add_argument("--predictions", type=Path, required=True)
+
     return parser
 
 
@@ -100,10 +110,11 @@ def _inspect_dataset(directory: Path, output: Path) -> int:
 
 def _detect_nodes(image_path: Path, output: Path) -> int:
     try:
-        result, image, source = NodeDetector().detect_file(image_path)
+        result, image, source, debug_image = NodeDetector().detect_file_with_debug(image_path)
         json_path, annotated_path = write_detection_outputs(
             source, image, result, output
         )
+        debug_path = write_grid_debug_output(source, debug_image, output)
     except VisionError as exc:
         print(f"节点检测失败: {exc}", file=sys.stderr)
         return 2
@@ -111,9 +122,37 @@ def _detect_nodes(image_path: Path, output: Path) -> int:
     print(f"原始分辨率: {result.image_width}x{result.image_height}")
     print(f"检测到的节点数量: {len(result.nodes)}")
     print(f"JSON 输出路径: {json_path.resolve()}")
+    categories = Counter(node.category for node in result.nodes)
+    print(
+        "分类统计: "
+        + ", ".join(f"{name}={count}" for name, count in sorted(categories.items()))
+    )
     print(f"标注图输出路径: {annotated_path.resolve()}")
+    print(f"道路/网格调试图路径: {debug_path.resolve()}")
     return 0
 
+
+def _format_metric(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.3f}"
+
+
+def _evaluate_detection(ground_truth: Path, predictions: Path) -> int:
+    try:
+        report = evaluate_directories(ground_truth, predictions)
+    except EvaluationError as exc:
+        print(f"检测评估失败: {exc}", file=sys.stderr)
+        return 2
+    for item in (*report.images, report.total):
+        print(f"[{item.name}]")
+        print(f"  TP={item.true_positive} FP={item.false_positive} FN={item.false_negative}")
+        print(f"  precision={item.precision:.3f} recall={item.recall:.3f} F1={item.f1:.3f}")
+        print(f"  mean_error={_format_metric(item.mean_center_error)} max_error={_format_metric(item.max_center_error)}")
+        print(
+            f"  current_marker_error={_format_metric(item.current_marker_error)} "
+            f"current_grid_correct={item.current_grid_cell_correct} "
+            f"duplicate_grid_points={item.duplicate_grid_points}"
+        )
+    return 0
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
@@ -123,6 +162,8 @@ def main(argv: list[str] | None = None) -> int:
         return _inspect_dataset(args.directory, args.output)
     if args.command == "detect-nodes":
         return _detect_nodes(args.image, args.output)
+    if args.command == "evaluate-detection":
+        return _evaluate_detection(args.ground_truth, args.predictions)
     raise AssertionError(f"unhandled command: {args.command}")
 
 

@@ -13,6 +13,7 @@ dist/
 Screenshots/
 data/raw_private/
 data/outputs_private/
+data/ground_truth_private/
 .idea/
 .vscode/
 Thumbs.db
